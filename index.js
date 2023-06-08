@@ -67,6 +67,13 @@ async function run() {
             const result = await userCollections.updateOne(filter, updateDoc);
             res.send(result);
           });
+
+          app.delete('/users', async (req, res) => {
+            const id =  req.query.id;
+            const query = { _id: new ObjectId(id) }
+            const result = await userCollections.deleteOne(query);
+            res.send(result);
+          })
           
         
 
