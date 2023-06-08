@@ -29,6 +29,40 @@ async function run() {
         // Connect the client to the server	(optional starting in v4.7)
         await client.connect();
         // Send a ping to confirm a successful connection
+
+        const userCollections = await client.db("athleteNexusDB").collection("users");
+
+        app.post('/users', async(req, res) => {
+            const user = req.body;
+            const query = { user: user.email };
+            const existingUser = await userCollections.findOne(query);
+    
+            if(existingUser) {
+                return res.send({message: "User already exists"})
+            }
+            const result = await userCollections.insertOne(user);
+            res.send(result);
+        })
+
+        app.patch('/users/role', async (req, res) => {
+            const id = req.query.id;
+            const role = req.query.role;
+            console.log(id, role);
+          
+            const filter = { _id: new ObjectId(id) };
+            const updateDoc = {
+              $set: {
+                role: `${role}`
+              },
+            };
+          
+            const result = await userCollections.updateOne(filter, updateDoc);
+            res.send(result);
+          });
+          
+        
+
+
         await client.db("admin").command({ ping: 1 });
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
     } finally {
