@@ -33,6 +33,14 @@ async function run() {
         // Send a ping to confirm a successful connection
 
         const userCollections = await client.db("athleteNexusDB").collection("users");
+        const classCollections = await client.db("athleteNexusDB").collection("classes");
+
+        //classes api
+        app.post("/classes", async (req, res) => {
+            const classData = req.body;
+            const result = await classCollections.insertOne(classData);
+            res.send(result);
+          });
 
 
         app.get('/users', async(req,res)=>{
@@ -55,7 +63,7 @@ async function run() {
         app.patch('/users/role', async (req, res) => {
             const id = req.query.id;
             const role = req.query.role;
-            console.log(id, role);
+            // console.log(id, role);
           
             const filter = { _id: new ObjectId(id) };
             const updateDoc = {
