@@ -1,5 +1,7 @@
 const express = require('express');
 const cors = require('cors');
+const { ObjectId } = require('mongodb');
+
 require('dotenv').config();
 
 
@@ -31,6 +33,12 @@ async function run() {
         // Send a ping to confirm a successful connection
 
         const userCollections = await client.db("athleteNexusDB").collection("users");
+
+
+        app.get('/users', async(req,res)=>{
+            const result = await userCollections.find().toArray();
+            res.send(result);
+        })
 
         app.post('/users', async(req, res) => {
             const user = req.body;
