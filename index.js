@@ -39,14 +39,14 @@ async function run() {
         //classes api
 
         app.get('/allClasses', async (req, res) => {
-            const filter = {status: 'approved'};
-            const sort = { createdAt: -1 }; 
+            const filter = { status: 'approved' };
+            const sort = { createdAt: -1 };
             const result = await classCollections.find(filter).sort(sort).toArray();
             res.send(result);
-          })
+        })
 
         app.get('/classes', async (req, res) => {
-            const sort = { createdAt: -1 }; 
+            const sort = { createdAt: -1 };
             const result = await classCollections.find().sort(sort).toArray();
             res.send(result);
         });
@@ -89,12 +89,12 @@ async function run() {
         });
 
 
-        //student api
+        //student enrolled class api
         app.post("/classes/enrolled", async (req, res) => {
             const classData = req.body;
             const result = await enrolledClassCollections.insertOne(classData);
             res.send(result);
-          });
+        });
 
 
 
@@ -138,6 +138,13 @@ async function run() {
             const result = await userCollections.deleteOne(query);
             res.send(result);
         })
+
+        //all instructor
+        app.get("/users/instructor", async (req, res) => {
+            const filter = { role: "instructor" };
+            const result = await userCollections.find(filter).toArray();
+            res.send(result);
+        });
 
 
 
