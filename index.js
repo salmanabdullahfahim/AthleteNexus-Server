@@ -34,7 +34,7 @@ async function run() {
 
         const userCollections = await client.db("athleteNexusDB").collection("users");
         const classCollections = await client.db("athleteNexusDB").collection("classes");
-        const enrolledClassCollections = await client.db("athleteNexusDB").collection("enrolledClasses");
+        const selectedClassCollection = await client.db("athleteNexusDB").collection("selectedClasses");
 
         //classes api
 
@@ -89,12 +89,17 @@ async function run() {
         });
 
 
-        //student enrolled class api
-        app.post("/classes/enrolled", async (req, res) => {
-            const classData = req.body;
-            const result = await enrolledClassCollections.insertOne(classData);
+        //student selected class api
+        app.get("/classes/selected", async (req, res) => {
+            const result = await selectedClassCollection.find().toArray();
             res.send(result);
-        });
+          });
+      
+          app.post("/classes/selected", async (req, res) => {
+            const classData = req.body;
+            const result = await selectedClassCollection.insertOne(classData);
+            res.send(result);
+          });
 
 
 
