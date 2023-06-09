@@ -102,6 +102,17 @@ async function run() {
           });
 
 
+          app.delete("/classes/selected", async (req, res) => {
+            const id = req.query.id;
+            const email = req.query.email;
+            console.log(id, email);
+            const query = { _id: new ObjectId(id) };
+            const result = await selectedClassCollection.deleteOne(query);
+            res.send(result);
+          });
+          
+
+
 
         //users api
         app.get('/users', async (req, res) => {
