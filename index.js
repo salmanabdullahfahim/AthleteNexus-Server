@@ -37,8 +37,16 @@ async function run() {
 
         //classes api
 
+        app.get('/allClasses', async (req, res) => {
+            const filter = {status: 'approved'};
+            const sort = { createdAt: -1 }; 
+            const result = await classCollections.find(filter).sort(sort).toArray();
+            res.send(result);
+          })
+
         app.get('/classes', async (req, res) => {
-            const result = await classCollections.find().toArray();
+            const sort = { createdAt: -1 }; 
+            const result = await classCollections.find().sort(sort).toArray();
             res.send(result);
         });
 
