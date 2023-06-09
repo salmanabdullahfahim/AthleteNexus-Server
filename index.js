@@ -88,29 +88,36 @@ async function run() {
             res.send(result);
         });
 
+        app.get("/classes/denied", async (req, res) => {
+            const filter = { status: "denied" };
+            const sort = { createdAt: -1 };
+            const result = await classCollections.find(filter).sort(sort).toArray();
+            res.send(result);
+        });
+
 
         //student selected class api
         app.get("/classes/selected", async (req, res) => {
             const result = await selectedClassCollection.find().toArray();
             res.send(result);
-          });
-      
-          app.post("/classes/selected", async (req, res) => {
+        });
+
+        app.post("/classes/selected", async (req, res) => {
             const classData = req.body;
             const result = await selectedClassCollection.insertOne(classData);
             res.send(result);
-          });
+        });
 
 
-          app.delete("/classes/selected", async (req, res) => {
+        app.delete("/classes/selected", async (req, res) => {
             const id = req.query.id;
             const email = req.query.email;
             console.log(id, email);
             const query = { _id: new ObjectId(id) };
             const result = await selectedClassCollection.deleteOne(query);
             res.send(result);
-          });
-          
+        });
+
 
 
 
@@ -122,7 +129,7 @@ async function run() {
 
         app.post('/users', async (req, res) => {
             const user = req.body;
-            const query = { user: user.email };
+            const query = { email: user.email };
             const existingUser = await userCollections.findOne(query);
 
             if (existingUser) {
