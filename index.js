@@ -288,7 +288,7 @@ async function run() {
   
       app.get("/payments/enrolled/student",  async (req, res) => {
         const email = req.query.email;
-        const filter = { email: email };
+        const filter = { studentEmail: email };
         const result = await paymentCollection.find(filter).toArray();
         res.send(result);
       });
