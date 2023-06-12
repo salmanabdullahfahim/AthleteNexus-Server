@@ -113,7 +113,7 @@ async function run() {
             res.send(result);
         });
 
-        app.get("/users/instructor/:email", verifyJWT, verifyAdmin, async (req, res) => {
+        app.get("/users/instructor/:email", verifyJWT, verifyInstructor, async (req, res) => {
             const email = req.params.email;
 
             if (req.decoded.email !== email) {
@@ -220,7 +220,7 @@ async function run() {
             res.send(result);
         });
 
-        app.patch("/classes/update", verifyJWT, async (req, res) => {
+        app.patch("/classes/update", verifyJWT, verifyInstructor, async (req, res) => {
             const cls = req.body.classData;
             console.log("class data", cls);
             const filter = { _id: new ObjectId(cls?.classId) };
@@ -238,7 +238,7 @@ async function run() {
 
 
         // My selected classes
-        app.get("/classes/selected", async (req, res) => {
+        app.get("/classes/selected", verifyJWT, async (req, res) => {
             const email = req.query.email;
 
             const filter = { studentEmail: email };
@@ -246,13 +246,13 @@ async function run() {
             res.send(result);
         });
 
-        app.post("/classes/selected", async (req, res) => {
+        app.post("/classes/selected", verifyJWT, async (req, res) => {
             const classData = req.body;
             const result = await selectedClassCollection.insertOne(classData);
             res.send(result);
         });
 
-        app.delete("/classes/selected", async (req, res) => {
+        app.delete("/classes/selected", verifyJWT, async (req, res) => {
             const id = req.query.id;
             const email = req.query.email;
             const query = { classId: id };
@@ -262,7 +262,7 @@ async function run() {
 
 
         // Payment methods - Stripe
-        app.post("/create-payment-intent", async (req, res) => {
+        app.post("/create-payment-intent", verifyJWT, async (req, res) => {
             const { price } = req.body;
             const amount = parseInt(price * 100);
             const paymentIntent = await stripe.paymentIntents.create({
@@ -276,7 +276,7 @@ async function run() {
             });
         });
 
-        app.post("/payments", async (req, res) => {
+        app.post("/payments", verifyJWT, async (req, res) => {
             const payment = req.body;
             const filter = { _id: new ObjectId(payment.classId) };
             const oldClass = await classCollections.findOne(filter);
@@ -296,20 +296,20 @@ async function run() {
             res.send({ postResult, updateResult });
         });
 
-        app.get("/payments/history", async (req, res) => {
+        app.get("/payments/history", verifyJWT, async (req, res) => {
             const email = req.query.email;
             const result = await paymentCollection.find().toArray();
             res.send(result);
         });
 
-        app.get("/payments/enrolled/student", async (req, res) => {
+        app.get("/payments/enrolled/student", verifyJWT, async (req, res) => {
             const email = req.query.email;
             const filter = { studentEmail: email };
             const result = await paymentCollection.find(filter).toArray();
             res.send(result);
         });
 
-        app.get("/payments/enrolled/instructor", async (req, res) => {
+        app.get("/payments/enrolled/instructor", verifyJWT, async (req, res) => {
             const email = req.query.email;
             const filter = { instructorEmail: email };
             const result = await classCollections.find(filter).toArray();
