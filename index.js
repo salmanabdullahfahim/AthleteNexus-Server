@@ -93,7 +93,7 @@ async function run() {
 
 
         // Users operations
-        app.get("/users",verifyJWT,  async (req, res) => {
+        app.get("/users", verifyJWT, async (req, res) => {
             const sort = { createdAt: -1 };
             const result = await userCollections.find().sort(sort).toArray();
             res.send(result);
@@ -101,7 +101,7 @@ async function run() {
 
         app.get("/users/admin/:email", verifyJWT, async (req, res) => {
             const email = req.params.email;
-            console.log(email);
+
 
             if (req.decoded.email !== email) {
                 return res.send({ admin: false });
@@ -113,7 +113,7 @@ async function run() {
             res.send(result);
         });
 
-        app.get("/users/instructor/:email", verifyJWT,  async (req, res) => {
+        app.get("/users/instructor/:email", verifyJWT, async (req, res) => {
             const email = req.params.email;
 
             if (req.decoded.email !== email) {
@@ -126,7 +126,7 @@ async function run() {
             res.send(result);
         });
 
-        app.delete("/users", verifyJWT, verifyAdmin,  async (req, res) => {
+        app.delete("/users", verifyJWT, verifyAdmin, async (req, res) => {
             const id = req.query.id;
             const query = { _id: new ObjectId(id) };
             const result = await userCollections.deleteOne(query);
@@ -145,7 +145,7 @@ async function run() {
             }
         });
 
-        app.patch("/users/role", verifyJWT, verifyAdmin,  async (req, res) => {
+        app.patch("/users/role", verifyJWT, verifyAdmin, async (req, res) => {
             const id = req.query.id;
             const role = req.query.role;
             const filter = { _id: new ObjectId(id) };
@@ -160,7 +160,7 @@ async function run() {
         });
 
         // Classes operations
-        app.get("/classes",  async (req, res) => {
+        app.get("/classes", async (req, res) => {
             const sort = { createdAt: -1 };
             const result = await classCollections.find().sort(sort).toArray();
             res.send(result);
@@ -180,20 +180,20 @@ async function run() {
             res.send(result);
         });
 
-        app.get("/classes/denied",  async (req, res) => {
+        app.get("/classes/denied", async (req, res) => {
             const filter = { status: "denied" };
             const sort = { createdAt: -1 };
             const result = await classCollections.find(filter).sort(sort).toArray();
             res.send(result);
         });
 
-        app.post("/classes",  async (req, res) => {
+        app.post("/classes", async (req, res) => {
             const classData = req.body;
             const result = await classCollections.insertOne(classData);
             res.send(result);
         });
 
-        app.patch("/classes/status",  async (req, res) => {
+        app.patch("/classes/status", async (req, res) => {
             const id = req.query.id;
             const status = req.query.status;
             const filter = { _id: new ObjectId(id) };
@@ -207,7 +207,7 @@ async function run() {
             res.send(result);
         });
 
-        app.patch("/classes/feedback",  async (req, res) => {
+        app.patch("/classes/feedback", async (req, res) => {
             const id = req.query.id;
             const feedback = req.query.feedback;
             const filter = { _id: new ObjectId(id) };
@@ -220,17 +220,33 @@ async function run() {
             res.send(result);
         });
 
+        app.patch("/classes/update", verifyJWT, async (req, res) => {
+            const cls = req.body.classData;
+            console.log("class data", cls);
+            const filter = { _id: new ObjectId(cls?.classId) };
+            const updateDoc = {
+              $set: {
+                className: `${cls?.className}`,
+                classImage: `${cls?.classImage}`,
+                availableSeats: `${cls?.availableSeats}`,
+                price: `${cls?.price}`,
+              },
+            };
+            const result = await classCollections.updateOne(filter, updateDoc);
+            res.send(result);
+          });          
+
 
         // My selected classes
-        app.get("/classes/selected",  async (req, res) => {
+        app.get("/classes/selected", async (req, res) => {
             const email = req.query.email;
-            console.log(email)
+
             const filter = { studentEmail: email };
             const result = await selectedClassCollection.find(filter).toArray();
             res.send(result);
         });
 
-        app.post("/classes/selected",  async (req, res) => {
+        app.post("/classes/selected", async (req, res) => {
             const classData = req.body;
             const result = await selectedClassCollection.insertOne(classData);
             res.send(result);
@@ -242,64 +258,64 @@ async function run() {
             const query = { classId: id };
             const result = await selectedClassCollection.deleteOne(query);
             res.send(result);
-          });
-
-
-     // Payment methods - Stripe
-     app.post("/create-payment-intent",  async (req, res) => {
-        const { price } = req.body;
-        const amount = parseInt(price * 100);
-        const paymentIntent = await stripe.paymentIntents.create({
-          amount: amount,
-          currency: "usd",
-          payment_method_types: ["card"],
         });
-  
-        res.send({
-          clientSecret: paymentIntent.client_secret,
-        });
-      });
-  
-      app.post("/payments",  async (req, res) => {
-        const payment = req.body;
-        const filter = { _id: new ObjectId(payment.classId) };
-        const oldClass = await classCollections.findOne(filter);
-  
-        const newSeat = parseFloat(oldClass?.availableSeats) - 1;
-        const newTotalEnrolled = parseFloat(oldClass?.totalEnrolled) + 1;
-  
-        const updateDoc = {
-          $set: {
-            availableSeats: `${newSeat}`,
-            totalEnrolled: `${newTotalEnrolled}`,
-          },
-        };
-        const updateResult = await classCollections.updateOne(filter, updateDoc);
-  
-        const postResult = await paymentCollection.insertOne(payment);
-        res.send({ postResult, updateResult });
-      });
-  
-      app.get("/payments/history",  async (req, res) => {
-        const email = req.query.email;
-        const result = await paymentCollection.find().toArray();
-        res.send(result);
-      });
-  
-      app.get("/payments/enrolled/student",  async (req, res) => {
-        const email = req.query.email;
-        const filter = { studentEmail: email };
-        const result = await paymentCollection.find(filter).toArray();
-        res.send(result);
-      });
 
-      app.get("/payments/enrolled/instructor",  async (req, res) => {
-        const email = req.query.email;
-        const filter = { instructorEmail: email };
-        const result = await classCollections.find(filter).toArray();
-        res.send(result);
-      });
-      
+
+        // Payment methods - Stripe
+        app.post("/create-payment-intent", async (req, res) => {
+            const { price } = req.body;
+            const amount = parseInt(price * 100);
+            const paymentIntent = await stripe.paymentIntents.create({
+                amount: amount,
+                currency: "usd",
+                payment_method_types: ["card"],
+            });
+
+            res.send({
+                clientSecret: paymentIntent.client_secret,
+            });
+        });
+
+        app.post("/payments", async (req, res) => {
+            const payment = req.body;
+            const filter = { _id: new ObjectId(payment.classId) };
+            const oldClass = await classCollections.findOne(filter);
+
+            const newSeat = parseFloat(oldClass?.availableSeats) - 1;
+            const newTotalEnrolled = parseFloat(oldClass?.totalEnrolled) + 1;
+
+            const updateDoc = {
+                $set: {
+                    availableSeats: `${newSeat}`,
+                    totalEnrolled: `${newTotalEnrolled}`,
+                },
+            };
+            const updateResult = await classCollections.updateOne(filter, updateDoc);
+
+            const postResult = await paymentCollection.insertOne(payment);
+            res.send({ postResult, updateResult });
+        });
+
+        app.get("/payments/history", async (req, res) => {
+            const email = req.query.email;
+            const result = await paymentCollection.find().toArray();
+            res.send(result);
+        });
+
+        app.get("/payments/enrolled/student", async (req, res) => {
+            const email = req.query.email;
+            const filter = { studentEmail: email };
+            const result = await paymentCollection.find(filter).toArray();
+            res.send(result);
+        });
+
+        app.get("/payments/enrolled/instructor", async (req, res) => {
+            const email = req.query.email;
+            const filter = { instructorEmail: email };
+            const result = await classCollections.find(filter).toArray();
+            res.send(result);
+        });
+
 
 
 
