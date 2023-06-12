@@ -93,13 +93,13 @@ async function run() {
 
 
         // Users operations
-        app.get("/users", verifyJWT, async (req, res) => {
+        app.get("/users", verifyJWT, verifyAdmin, async (req, res) => {
             const sort = { createdAt: -1 };
             const result = await userCollections.find().sort(sort).toArray();
             res.send(result);
         });
 
-        app.get("/users/admin/:email", verifyJWT, async (req, res) => {
+        app.get("/users/admin/:email", verifyJWT, verifyAdmin, async (req, res) => {
             const email = req.params.email;
 
 
@@ -113,7 +113,7 @@ async function run() {
             res.send(result);
         });
 
-        app.get("/users/instructor/:email", verifyJWT, async (req, res) => {
+        app.get("/users/instructor/:email", verifyJWT, verifyAdmin, async (req, res) => {
             const email = req.params.email;
 
             if (req.decoded.email !== email) {
@@ -145,7 +145,7 @@ async function run() {
             }
         });
 
-        app.patch("/users/role", verifyJWT, verifyAdmin, async (req, res) => {
+        app.patch("/users/role", verifyJWT, verifyAdmin,  async (req, res) => {
             const id = req.query.id;
             const role = req.query.role;
             const filter = { _id: new ObjectId(id) };
@@ -187,13 +187,13 @@ async function run() {
             res.send(result);
         });
 
-        app.post("/classes", async (req, res) => {
+        app.post("/classes", verifyJWT, verifyInstructor, async (req, res) => {
             const classData = req.body;
             const result = await classCollections.insertOne(classData);
             res.send(result);
         });
 
-        app.patch("/classes/status", async (req, res) => {
+        app.patch("/classes/status", verifyJWT, verifyAdmin, async (req, res) => {
             const id = req.query.id;
             const status = req.query.status;
             const filter = { _id: new ObjectId(id) };
@@ -207,7 +207,7 @@ async function run() {
             res.send(result);
         });
 
-        app.patch("/classes/feedback", async (req, res) => {
+        app.patch("/classes/feedback", verifyJWT, verifyAdmin, async (req, res) => {
             const id = req.query.id;
             const feedback = req.query.feedback;
             const filter = { _id: new ObjectId(id) };
